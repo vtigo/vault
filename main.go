@@ -2,21 +2,30 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
-	"os"
 )
 
-func defaultHandler(w http.ResponseWriter, _ *http.Request) {
-	data, err := os.ReadFile("data.txt")
+func editableTemplateHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles("templates/editable.html")
 	if err != nil {
-		http.Error(w, "failed to read file", http.StatusInternalServerError)
-		return
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	w.Write(data)
+
+	data := struct {
+		Data string
+	}{
+		Data: "salve from template",
+	}
+
+	err = tmpl.Execute(w, data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func main() {
-	http.HandleFunc("/", defaultHandler)
+	http.HandleFunc("/", editableTemplateHandler)
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		fmt.Printf("Erro ao iniciar servidor: %v", err)
