@@ -4,21 +4,29 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 )
 
+type EditablePage struct {
+	Title string
+	Data  string
+}
+
+var editableTemplate = template.Must(template.ParseFiles("templates/editable.html"))
+
 func editableTemplateHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("templates/editable.html")
+	fileData, err := os.ReadFile("data.txt")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	data := struct {
-		Data string
-	}{
-		Data: "salve from template",
+	pageData := &EditablePage{
+		Title: "Vault",
+		Data:  string(fileData),
 	}
 
-	err = tmpl.Execute(w, data)
+	err = editableTemplate.Execute(w, pageData)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
